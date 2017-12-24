@@ -4,6 +4,7 @@ import cv2
 import numpy as np
 import pandas as pd
 import seaborn as sns
+import pims
 
 #from sklearn import hmm
 from sklearn import mixture
@@ -11,7 +12,6 @@ from sklearn.decomposition import PCA
 import time
 import sys
 import scipy.ndimage
-import MOG3
 import scipy.ndimage as ndimage
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
@@ -62,6 +62,9 @@ def classify3(features):
 			lowest_bic = BIC[i]
 			best_gmm = gmm
 
+	best_gmm = GaussianMixture(n_components=best_gmm.n_components, covariance_type='full', random_state=0)
+	best_gmm.fit(features)
+
 	print(best_gmm.n_components)
 	plt.plot(BIC)
 	plt.show()
@@ -102,14 +105,16 @@ if __name__ == "__main__":
 
 	labels = bgmm.predict(df2)
 
+	print(bgmm.means_)
+
 	#print(len(set(labels)))
 
 	#plt.scatter(X1[:, 0], X1[:, 1], c=labels)
-	plt.scatter(df2["x"], df2["y"], c=labels, s=40)
-	plt.scatter(bgmm.means_[:,1], bgmm.means_[:,0], s=120)
+	plt.scatter(df2["x"], 240 - df2["y"], c=labels, s=40)
+	plt.scatter(bgmm.means_[:,0], 240 - bgmm.means_[:,1], s=120)
 
 
-	sns.jointplot(x=df2["x"], y=df2["y"], kind="hex", color="k");
+	sns.jointplot(x=df2["x"], y=240 - df2["y"], kind="hex", color="k");
 
 	#plt.hist2d(df2["x"], df2["y"], bins=[16, 9], norm=LogNorm())
 
@@ -145,20 +150,49 @@ if __name__ == "__main__":
 
 	mlabel = np.max(labels)
 
-	cap = cv2.VideoCapture('z3.avi')
+	#cap = pims.Video('z3.avi')
 
 
 	for i in range(mlabel + 1):
 		print("Now playing cluster %d!" % i)
+
+		cap = cv2.VideoCapture('z6.avi')
+		ok, frame = cap.read()
+		aspect = float(frame.shape[1]) / frame.shape[0]
+		cap.release()
+		cap = cv2.VideoCapture('z6.avi')
+
+		msk = np.zeros([240, int(240 * aspect), 3], dtype=np.uint8)
+
+		xp = df["x"][labels == i]
+		yp = df["y"][labels == i]
+		for j in range(len(xp)):
+			cv2.circle(msk, (int(xp.iloc[j]), int(yp.iloc[j])), 5, (0,0,255),2)
+
+		cv2.imshow('frame', msk)
+		cv2.waitKey(1)
+
+
 		frms = df["frame"][labels == i]
 		print(len(frms)/len(df["frame"]))
-		frms = np.unique(frms)
-		for frm in frms:
-			cap.set(cv2.CAP_PROP_POS_FRAMES, frm)
+		frms = set(np.unique(frms))
+
+		while True:
 			ok, frame = cap.read()
-			aspect = float(frame.shape[1]) / frame.shape[0]
-			frame = cv2.resize(frame, (int(240 * aspect), 240), interpolation = cv2.INTER_AREA)
-			cv2.imshow('frame', frame)
+			if not ok:
+				break
+
+			if cap.get(cv2.CAP_PROP_POS_FRAMES) in frms:
+				#cap.set(cv2.CAP_PROP_POS_FRAMES, int(frm))
+				#ok, frame = cap.read()
+				#frame = cap[int(frm)]
+				frame = cv2.resize(frame, (int(240 * aspect), 240), interpolation = cv2.INTER_AREA)
+
+				cv2.circle(frame, (int(bgmm.means_[i,0]), int(bgmm.means_[i,1])), 10, (255,255,255),5)
+
+				frame = cv2.addWeighted(frame, 1.0, msk, 0.5, 0)
+
+				cv2.imshow('frame', frame)
 			k = cv2.waitKey(1) & 0xff
 			if k == 32:
 				k = cv2.waitKey() & 0xff
@@ -167,7 +201,7 @@ if __name__ == "__main__":
 		print("Done!")
 		k = cv2.waitKey()
 
-	cap.release()
+		cap.release()
 
 
 	#pca = PCA(n_components=3)

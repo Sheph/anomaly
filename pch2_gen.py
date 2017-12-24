@@ -4,11 +4,10 @@ import cv2
 import numpy as np
 import pandas as pd
 #from sklearn import hmm
-from sklearn import mixture
-import time
-import sys
-import scipy.ndimage
-import MOG3
+#from sklearn import mixture
+#import time
+#import sys
+#import scipy.ndimage
 import scipy.ndimage as ndimage
 
 scale_height = 240
@@ -246,7 +245,7 @@ def process(cap):
 	df.to_csv("data.csv", encoding='utf-8')
 
 if __name__ == "__main__":
-	cap = cv2.VideoCapture('z3.avi')
+	cap = cv2.VideoCapture('z6.avi')
 	process(cap)
 	cap.release()
 	cv2.destroyAllWindows()
