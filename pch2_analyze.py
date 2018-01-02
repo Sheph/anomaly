@@ -73,7 +73,7 @@ def classify3(features):
 
 if __name__ == "__main__":
 	df = pd.read_csv("data.csv")
-	df.drop(df.columns[0], inplace=True, axis=1)
+	df.drop([df.columns[0], df.columns[1]], inplace=True, axis=1)
 	#df.drop(["Rf"], inplace=True, axis=1)
 
 	#scaler = StandardScaler()

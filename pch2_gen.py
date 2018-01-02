@@ -91,6 +91,9 @@ def process(cap):
 	global bin_size_h
 
 	fps = cap.get(cv2.CAP_PROP_FPS)
+	fps = 25
+
+	print(fps)
 
 	bg_learning_rate = 1.0 / (bg_learning_rate_sec * target_fps)
 
@@ -222,7 +225,7 @@ def process(cap):
 					cv2.circle(frame2, (int(cx), int(cy)), 2, (0, 0, 255));
 					#features.append([cap.get(cv2.CAP_PROP_POS_FRAMES), cx, cy, w, h, (x + com[1] - cx), (y + com[0] - cy)])
 					#features.append([cap.get(cv2.CAP_PROP_POS_FRAMES), cx, cy, (x + com[1] - cx), (y + com[0] - cy)])
-					features.append([cap.get(cv2.CAP_PROP_POS_FRAMES), cx, cy, w, h, Rf, (x + com[1] - cx), (y + com[0] - cy)])
+					features.append([cap.get(cv2.CAP_PROP_POS_FRAMES) / fps, cap.get(cv2.CAP_PROP_POS_FRAMES), cx, cy, w, h, Rf, (x + com[1] - cx), (y + com[0] - cy)])
 				#features.append([cap.get(cv2.CAP_PROP_POS_FRAMES), cx / frame_w, cy / frame_h, w / frame_w, h / frame_h, Rf])
 
 		cv2.imshow('frame2', frame2)
@@ -239,7 +242,7 @@ def process(cap):
 		if k == 27:
 			break
 
-	df = pd.DataFrame(features, columns = ["frame", "x", "y", "w", "h", "Rf", "mx", "my"])
+	df = pd.DataFrame(features, columns = ["time", "frame", "x", "y", "w", "h", "Rf", "mx", "my"])
 	#df = pd.DataFrame(features, columns = ["frame", "x", "y", "mx", "my"])
 	#df = pd.DataFrame(features, columns = ["frame", "x", "y", "w", "h", "Rf"])
 	df.to_csv("data.csv", encoding='utf-8')
