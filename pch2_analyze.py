@@ -16,6 +16,7 @@ import scipy.ndimage as ndimage
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import MinMaxScaler
 from matplotlib.colors import LogNorm
 from sklearn.mixture import GaussianMixture
 from sklearn.model_selection import GridSearchCV
@@ -23,7 +24,7 @@ from sklearn.model_selection import GridSearchCV
 def classify(features):
 	lowest_bic = np.infty
 	#bic = []
-	n_components_range = range(1, 5)
+	n_components_range = range(1, 40)
 	#cv_types = ['spherical', 'tied', 'diag', 'full']
 	cv_types = ['full']
 	best_gmm = None
@@ -47,8 +48,8 @@ def classify2(features):
 def classify3(features):
 	newdata = features
 	#newdata = scipy.ndimage.filters.gaussian_filter(features, (1.5, 1.5))
-	newdata = scipy.ndimage.filters.gaussian_filter(features, (1.5, 1.5))
-	n_components = np.arange(1, 15)
+	#newdata = scipy.ndimage.filters.gaussian_filter(features, 3)
+	n_components = np.arange(1, 6)
 	BIC = np.zeros(n_components.shape)
 	lowest_bic = np.infty
 	best_gmm = None
@@ -73,9 +74,10 @@ def classify3(features):
 if __name__ == "__main__":
 	df = pd.read_csv("data.csv")
 	df.drop(df.columns[0], inplace=True, axis=1)
-	df.drop(["w", "h", "mx", "my", "Rf"], inplace=True, axis=1)
+	#df.drop(["Rf"], inplace=True, axis=1)
 
-	scaler = StandardScaler()
+	#scaler = StandardScaler()
+	scaler = MinMaxScaler()
 
 
 
@@ -87,7 +89,7 @@ if __name__ == "__main__":
 
 
 
-	#df2 = pd.DataFrame(scaler.fit_transform(df2), columns=df.columns[1:])
+	df2 = pd.DataFrame(scaler.fit_transform(df2), columns=df.columns[1:])
 
 	print(df2.describe())
 
@@ -98,6 +100,12 @@ if __name__ == "__main__":
 
 	pca = PCA(n_components=2)
 	X1 = pca.fit_transform(df2)
+
+	print(pca.explained_variance_ratio_)
+
+	#plt.scatter(X1[:,0], X1[:,1], s=40)
+	sns.jointplot(x=X1[:,0], y=X1[:,1], kind="hex", color="k");
+	plt.show()
 
 	#bgmm = classify(df2)
 	#bgmm = classify2(df2)
@@ -156,11 +164,11 @@ if __name__ == "__main__":
 	for i in range(mlabel + 1):
 		print("Now playing cluster %d!" % i)
 
-		cap = cv2.VideoCapture('z6.avi')
+		cap = cv2.VideoCapture('test3.avi')
 		ok, frame = cap.read()
 		aspect = float(frame.shape[1]) / frame.shape[0]
 		cap.release()
-		cap = cv2.VideoCapture('z6.avi')
+		cap = cv2.VideoCapture('test3.avi')
 
 		msk = np.zeros([240, int(240 * aspect), 3], dtype=np.uint8)
 
