@@ -248,7 +248,7 @@ def process(cap):
 	df.to_csv("data.csv", encoding='utf-8')
 
 if __name__ == "__main__":
-	cap = cv2.VideoCapture('test3.avi')
+	cap = cv2.VideoCapture('z3.avi')
 	process(cap)
 	cap.release()
 	cv2.destroyAllWindows()
