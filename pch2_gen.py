@@ -245,10 +245,10 @@ def process(cap):
 	df = pd.DataFrame(features, columns = ["time", "frame", "x", "y", "w", "h", "Rf", "mx", "my"])
 	#df = pd.DataFrame(features, columns = ["frame", "x", "y", "mx", "my"])
 	#df = pd.DataFrame(features, columns = ["frame", "x", "y", "w", "h", "Rf"])
-	df.to_csv("data.csv", encoding='utf-8')
+	df.to_csv("data_test.csv", encoding='utf-8')
 
 if __name__ == "__main__":
-	cap = cv2.VideoCapture('z3.avi')
+	cap = cv2.VideoCapture('Datasets/UCSDPed1/combined/test.avi')
 	process(cap)
 	cap.release()
 	cv2.destroyAllWindows()
