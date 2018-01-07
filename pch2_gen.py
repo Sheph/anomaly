@@ -12,11 +12,11 @@ import scipy.ndimage as ndimage
 
 scale_height = 240
 target_fps = 8
-bg_learning_rate_sec = 8
-obj_min_w_prc=6
+bg_learning_rate_sec = 8 * 5
 obj_min_h_prc=6
-obj_max_w_prc=60
-obj_max_h_prc=60
+obj_min_w_prc=6
+obj_max_h_prc=80
+obj_max_w_prc=80
 pch1_s_sec = 2.0
 pch1_t_sec = 5.0 / 3.0
 ple_th = 180
@@ -51,14 +51,14 @@ def calc_pch1(pch, fgmask):
 	pch[pch < 0] = 0
 
 def apply_bg_sub(frame):
-	mask = bg_sub.apply(frame, bg_learning_rate)
+	mask = bg_sub.apply(frame, learningRate=bg_learning_rate)
 
 	bg = bg_sub.getBackgroundImage()
 	bg_gray = cv2.cvtColor(bg, cv2.COLOR_RGB2GRAY)
 	frame_gray = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
 	frame_gray_b = cv2.GaussianBlur(frame_gray, (frame_blur, frame_blur), 0)
 	bg_gray_b = cv2.GaussianBlur(bg_gray, (frame_blur, frame_blur), 0)
-	_, thr = cv2.threshold(cv2.absdiff(bg_gray_b, frame_gray_b), 20, 255, cv2.THRESH_BINARY);
+	_, thr = cv2.threshold(cv2.absdiff(bg_gray_b, frame_gray_b), 15, 255, cv2.THRESH_BINARY);
 	mask = cv2.bitwise_and(mask, thr)
 
 	mask_127 = (mask == 127).astype('uint8') * 255
@@ -163,9 +163,14 @@ def process(cap):
 
 		cv2.imshow('frame', frame)
 
+		#if bg_learning_frames > 0:
+		#	bg_sub.apply(frame, learningRate=1.0)
+		#	bg_learning_frames = 0
+		#	continue
+
 		if bg_learning_frames > 0:
 			bg_learning_frames -= 1
-			bg_sub.apply(frame, bg_learning_rate)
+			bg_sub.apply(frame, learningRate=bg_learning_rate)
 			continue
 
 		fgmask, gray = apply_bg_sub(frame)
@@ -203,7 +208,7 @@ def process(cap):
 			pch1_m = pch1b[b].mean()
 
 			#if (w >= obj_min_w) & (h >= obj_min_h) & (w <= obj_max_w) & (h <= obj_max_h) & (prev_gray is not None) & (pch1[b].mean() > ple_tb):
-			if (w >= obj_min_w) & (h >= obj_min_h) & (w <= obj_max_w) & (h <= obj_max_h) & (prev_gray is not None) & (nz_pch > 0):
+			if (w >= obj_min_w) & (h >= obj_min_h) & (w <= obj_max_w) & (h <= obj_max_h) & (prev_gray is not None) & (nz_pch > 0) & (h / w >= 1.0):
 				b_data = pixel_level_events[b]
 				nz = float(np.count_nonzero(b_data))
 				Rf = nz / b_data.size
@@ -216,7 +221,7 @@ def process(cap):
 				cx = (b[1].start + b[1].stop) / 2
 				cy = (b[0].start + b[0].stop) / 2
 
-				if nz_pch != 0:
+				if True:#nz_pch != 0:
 					cv2.rectangle(frame2, (x, y), (x + w, y + h), (255, 255, 255), 2)
 					#Rf = nz_pch / b_data_pch.size
 					Rf = np.sum(b_data_pch) / (255 * b_data_pch.size)
@@ -245,10 +250,12 @@ def process(cap):
 	df = pd.DataFrame(features, columns = ["time", "frame", "x", "y", "w", "h", "Rf", "mx", "my"])
 	#df = pd.DataFrame(features, columns = ["frame", "x", "y", "mx", "my"])
 	#df = pd.DataFrame(features, columns = ["frame", "x", "y", "w", "h", "Rf"])
-	df.to_csv("data_test.csv", encoding='utf-8')
+	df.to_csv("data.csv", encoding='utf-8')
 
 if __name__ == "__main__":
-	cap = cv2.VideoCapture('Datasets/UCSDPed1/combined/test.avi')
+	#cap = cv2.VideoCapture('Datasets/UCSDPed1/combined/test.avi')
+	cap = cv2.VideoCapture('z6.avi')
+	#cap = cv2.VideoCapture('Datasets/Crossroads2/train.avi')
 	process(cap)
 	cap.release()
 	cv2.destroyAllWindows()

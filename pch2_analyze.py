@@ -49,7 +49,7 @@ def classify3(features):
 	newdata = features
 	#newdata = scipy.ndimage.filters.gaussian_filter(features, (1.5, 1.5))
 	#newdata = scipy.ndimage.filters.gaussian_filter(features, 3)
-	n_components = np.arange(1, 6)
+	n_components = np.arange(1, 200)
 	BIC = np.zeros(n_components.shape)
 	lowest_bic = np.infty
 	best_gmm = None
@@ -71,6 +71,15 @@ def classify3(features):
 	plt.show()
 	return best_gmm
 
+def classify4(features):
+	parameters = {
+	    'n_components' : np.arange(1, 30)
+	}
+	clf = GridSearchCV(GaussianMixture(covariance_type='full', random_state=0), parameters, cv=5, n_jobs=-1)
+	clf.fit(features)
+	print("n_components",clf.best_estimator_.n_components)
+	return clf.best_estimator_
+
 if __name__ == "__main__":
 	df = pd.read_csv("data.csv")
 	df.drop([df.columns[0], df.columns[1]], inplace=True, axis=1)
@@ -87,9 +96,7 @@ if __name__ == "__main__":
 
 	df2 = df.drop(df.columns[0], axis=1)
 
-
-
-	df2 = pd.DataFrame(scaler.fit_transform(df2), columns=df.columns[1:])
+	df2 = pd.DataFrame(scaler.fit_transform(df2), columns=df2.columns)
 
 	print(df2.describe())
 
@@ -109,7 +116,7 @@ if __name__ == "__main__":
 
 	#bgmm = classify(df2)
 	#bgmm = classify2(df2)
-	bgmm = classify3(df2)
+	bgmm = classify4(df2)
 
 	labels = bgmm.predict(df2)
 
@@ -164,11 +171,13 @@ if __name__ == "__main__":
 	for i in range(mlabel + 1):
 		print("Now playing cluster %d!" % i)
 
-		cap = cv2.VideoCapture('test3.avi')
+		#cap = cv2.VideoCapture('Datasets/UCSDPed1/combined/train.avi')
+		cap = cv2.VideoCapture('z6.avi')
 		ok, frame = cap.read()
 		aspect = float(frame.shape[1]) / frame.shape[0]
 		cap.release()
-		cap = cv2.VideoCapture('test3.avi')
+		#cap = cv2.VideoCapture('Datasets/UCSDPed1/combined/train.avi')
+		cap = cv2.VideoCapture('z6.avi')
 
 		msk = np.zeros([240, int(240 * aspect), 3], dtype=np.uint8)
 
@@ -196,7 +205,7 @@ if __name__ == "__main__":
 				#frame = cap[int(frm)]
 				frame = cv2.resize(frame, (int(240 * aspect), 240), interpolation = cv2.INTER_AREA)
 
-				cv2.circle(frame, (int(bgmm.means_[i,0]), int(bgmm.means_[i,1])), 10, (255,255,255),5)
+				cv2.circle(frame, (int(scaler.inverse_transform([bgmm.means_[i,:]])[0][0]), int(scaler.inverse_transform([bgmm.means_[i,:]])[0][1])), 10, (255,255,255),5)
 
 				frame = cv2.addWeighted(frame, 1.0, msk, 0.5, 0)
 
