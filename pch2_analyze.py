@@ -49,7 +49,7 @@ def classify3(features):
 	newdata = features
 	#newdata = scipy.ndimage.filters.gaussian_filter(features, (1.5, 1.5))
 	#newdata = scipy.ndimage.filters.gaussian_filter(features, 3)
-	n_components = np.arange(1, 200)
+	n_components = np.arange(1, 50)
 	BIC = np.zeros(n_components.shape)
 	lowest_bic = np.infty
 	best_gmm = None
@@ -116,7 +116,7 @@ if __name__ == "__main__":
 
 	#bgmm = classify(df2)
 	#bgmm = classify2(df2)
-	bgmm = classify4(df2)
+	bgmm = classify3(df2)
 
 	labels = bgmm.predict(df2)
 
@@ -171,13 +171,13 @@ if __name__ == "__main__":
 	for i in range(mlabel + 1):
 		print("Now playing cluster %d!" % i)
 
-		#cap = cv2.VideoCapture('Datasets/UCSDPed1/combined/train.avi')
-		cap = cv2.VideoCapture('z3.avi')
+		cap = cv2.VideoCapture('Datasets/UCSDPed1/combined/train.avi')
+		#cap = cv2.VideoCapture('z3.avi')
 		ok, frame = cap.read()
 		aspect = float(frame.shape[1]) / frame.shape[0]
 		cap.release()
-		#cap = cv2.VideoCapture('Datasets/UCSDPed1/combined/train.avi')
-		cap = cv2.VideoCapture('z3.avi')
+		cap = cv2.VideoCapture('Datasets/UCSDPed1/combined/train.avi')
+		#cap = cv2.VideoCapture('z3.avi')
 
 		msk = np.zeros([240, int(240 * aspect), 3], dtype=np.uint8)
 
