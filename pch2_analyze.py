@@ -73,7 +73,7 @@ def classify3(features):
 
 def classify4(features):
 	parameters = {
-	    'n_components' : np.arange(1, 30)
+	    'n_components' : np.arange(1, 50)
 	}
 	clf = GridSearchCV(GaussianMixture(covariance_type='full', random_state=0), parameters, cv=5, n_jobs=-1)
 	clf.fit(features)
@@ -172,12 +172,12 @@ if __name__ == "__main__":
 		print("Now playing cluster %d!" % i)
 
 		#cap = cv2.VideoCapture('Datasets/UCSDPed1/combined/train.avi')
-		cap = cv2.VideoCapture('z6.avi')
+		cap = cv2.VideoCapture('z3.avi')
 		ok, frame = cap.read()
 		aspect = float(frame.shape[1]) / frame.shape[0]
 		cap.release()
 		#cap = cv2.VideoCapture('Datasets/UCSDPed1/combined/train.avi')
-		cap = cv2.VideoCapture('z6.avi')
+		cap = cv2.VideoCapture('z3.avi')
 
 		msk = np.zeros([240, int(240 * aspect), 3], dtype=np.uint8)
 
