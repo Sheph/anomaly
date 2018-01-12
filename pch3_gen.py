@@ -8,8 +8,8 @@ import json
 def process(cap, preds):
 	scale_height = 240
 	target_fps = 10
-	obj_min_h_prc=6
-	obj_min_w_prc=6
+	obj_min_h_prc=1
+	obj_min_w_prc=1
 	obj_max_h_prc=60
 	obj_max_w_prc=60
 
@@ -121,10 +121,12 @@ def process(cap, preds):
 
 	print("Done!")
 	df = pd.DataFrame(features, columns = ["time", "frame", "x", "y", "w", "h", "Rf", "mx", "my"])
-	df.to_csv("data_test.csv", encoding='utf-8')
+	df.to_csv("data.csv", encoding='utf-8')
 
 if __name__ == "__main__":
-	cap = cv2.VideoCapture('Datasets/UCSDPed1/combined/test.avi')
-	process(cap, json.load(open('Datasets/UCSDPed1/combined/test_boxes.json')))
+	#cap = cv2.VideoCapture('Datasets/UCSDPed1/combined/test.avi')
+	#process(cap, json.load(open('Datasets/UCSDPed1/combined/test_boxes.json')))
+	cap = cv2.VideoCapture('Datasets/Pedestrian/train.avi')
+	process(cap, json.load(open('ped_train_boxes.json')))
 	cap.release()
 	cv2.destroyAllWindows()
