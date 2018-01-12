@@ -58,25 +58,6 @@ def process(cap, preds):
 		frm = cap.get(cv2.CAP_PROP_POS_FRAMES)
 
 		if frm >= cur_pred[0]:
-			for tr in trackers:
-				tr_obj = tr[0]
-				bbox = tr[1]
-				ubbox = tr[2]
-				cv2.rectangle(frame, (bbox[0], bbox[1]), (bbox[0] + bbox[2], bbox[1] + bbox[3]), (0, 255, 0), 2)
-				cv2.rectangle(frame, (ubbox[0], ubbox[1]), (ubbox[0] + ubbox[2], ubbox[1] + ubbox[3]), (0, 0, 255), 2)
-
-				cx = bbox[0] + bbox[2] / 2.0
-				cy = bbox[1] + bbox[3] / 2.0
-				w = float(bbox[2])
-				h = float(bbox[3])
-				Rf = 0.0
-
-				mx = ubbox[0] + ubbox[2] / 2.0
-				my = ubbox[1] + ubbox[3] / 2.0
-
-				features.append([cap.get(cv2.CAP_PROP_POS_FRAMES) / fps, cap.get(cv2.CAP_PROP_POS_FRAMES), cx, cy, w, h, Rf, (mx - cx), (my - cy)])
-			cv2.imshow('frame', frame)
-
 			boxes = cur_pred[1]
 			trackers = []
 			for b in boxes:
@@ -93,8 +74,10 @@ def process(cap, preds):
 
 				if (w >= obj_min_w) & (h >= obj_min_h) & (w <= obj_max_w) & (h <= obj_max_h):
 					cv2.rectangle(frame, (x, y), (x + w, y + h), (255, 255, 255), 2)
-					tr = cv2.TrackerKCF_create()
+					#tr = cv2.TrackerKCF_create()
+					tr = cv2.Tracker_create('KCF')
 					tr.init(orig_frame, (x, y, w, h))
+					tr.update(orig_frame)
 					trackers.append([tr, (x, y, w, h), (x, y, w, h)])
 
 			#cv2.imshow('frame', frame)
@@ -105,13 +88,38 @@ def process(cap, preds):
 			for tr in trackers:
 				tr_obj = tr[0]
 				bbox = tr[1]
-				cv2.rectangle(frame, (bbox[0], bbox[1]), (bbox[0] + bbox[2], bbox[1] + bbox[3]), (0, 255, 0), 2)
+				#cv2.rectangle(frame, (bbox[0], bbox[1]), (bbox[0] + bbox[2], bbox[1] + bbox[3]), (0, 255, 0), 2)
 				ok2, ubbox = tr_obj.update(orig_frame)
 				ubbox = (int(ubbox[0]), int(ubbox[1]), int(ubbox[2]), int(ubbox[3]))
 				if ok2:
 					tr[2] = ubbox
+				else:
+					tr[2] = None
 					#cv2.rectangle(frame, (ubbox[0], ubbox[1]), (ubbox[0] + ubbox[2], ubbox[1] + ubbox[3]), (0, 0, 255), 2)
 			#cv2.imshow('frame', frame)
+
+			for tr in trackers:
+				tr_obj = tr[0]
+				bbox = tr[1]
+				ubbox = tr[2]
+				if ubbox is None:
+					continue
+				cv2.rectangle(frame, (bbox[0], bbox[1]), (bbox[0] + bbox[2], bbox[1] + bbox[3]), (0, 255, 0), 2)
+				cv2.rectangle(frame, (ubbox[0], ubbox[1]), (ubbox[0] + ubbox[2], ubbox[1] + ubbox[3]), (0, 0, 255), 2)
+
+				cx = bbox[0] + bbox[2] / 2.0
+				cy = bbox[1] + bbox[3] / 2.0
+				w = float(bbox[2])
+				h = float(bbox[3])
+				Rf = 0.0
+
+				mx = ubbox[0] + ubbox[2] / 2.0
+				my = ubbox[1] + ubbox[3] / 2.0
+
+				features.append([cap.get(cv2.CAP_PROP_POS_FRAMES) / fps, cap.get(cv2.CAP_PROP_POS_FRAMES), cx, cy, w, h, Rf, (mx - cx), (my - cy)])
+
+				tr[1] = tr[2]
+			cv2.imshow('frame', frame)
 
 		k = cv2.waitKey(1) & 0xff
 		if k == 32:
@@ -121,12 +129,14 @@ def process(cap, preds):
 
 	print("Done!")
 	df = pd.DataFrame(features, columns = ["time", "frame", "x", "y", "w", "h", "Rf", "mx", "my"])
-	df.to_csv("data.csv", encoding='utf-8')
+	df.to_csv("data_test.csv", encoding='utf-8')
 
 if __name__ == "__main__":
 	#cap = cv2.VideoCapture('Datasets/UCSDPed1/combined/test.avi')
 	#process(cap, json.load(open('Datasets/UCSDPed1/combined/test_boxes.json')))
-	cap = cv2.VideoCapture('Datasets/Pedestrian/train.avi')
-	process(cap, json.load(open('ped_train_boxes.json')))
+	cap = cv2.VideoCapture('Datasets/Pedestrian/test.avi')
+	process(cap, json.load(open('ped_test_boxes.json')))
+	#cap = cv2.VideoCapture('Datasets/Crossroads1/test.avi')
+	#process(cap, json.load(open('cross1_test_boxes.json')))
 	cap.release()
 	cv2.destroyAllWindows()

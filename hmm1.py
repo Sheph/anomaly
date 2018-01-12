@@ -1,7 +1,7 @@
 #!/usr/bin/env python2
 
 import numpy as np
-from sklearn import hmm
+from hmmlearn import hmm
 
 if __name__ == "__main__":
 	#startprob = np.array([0.6, 0.3, 0.1])
@@ -15,25 +15,18 @@ if __name__ == "__main__":
 	#print(X)
 	#print(Z)
 
-	model = hmm.GaussianHMM(n_components=4, covariance_type="diag", n_iter=1000)
+	model = hmm.GaussianHMM(n_components=4, covariance_type="full", n_iter=1000)
 	#data = np.array([[0.7, 0.3], [0.3, 0.7], [0.6, 0.4], [0.9, 0.1]])
-	a = [0.1, 0.2, 0.3, 0.4]
-	b = [0.9, 0.8, 0.7, 0.6]
-	data = np.column_stack([a, b])
 
-	print(data)
+	model.fit([[0.1, 0.9], [0.2, 0.8], [0.3, 0.7], [0.4, 0.6]])
 
-	model.fit([data])
-
-	np.set_printoptions(precision=2)
-	np.set_printoptions(suppress=True)
+	#np.set_printoptions(precision=2)
+	#np.set_printoptions(suppress=True)
 
 	print(model.transmat_)
 	#print(model.statprob_)
 
-	test = np.array([[0.3, 0.7], [0.6, 0.4], [0.6, 0.4], [0.6, 0.4]])
-
-	print(model.predict(data))
-	print(model.score(data))
-	print(model.score(test))
-	print(model.sample(3))
+	#print(model.predict(data))
+	print(model.score([[0.1, 0.9], [0.2, 0.8], [0.4, 0.6], [0.1, 0.9], [0.2, 0.8], [0.1, 0.9], [0.2, 0.8]]))
+	#print(model.score(test))
+	#print(model.sample(3))

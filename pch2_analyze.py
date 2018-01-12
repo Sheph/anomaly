@@ -4,7 +4,6 @@ import cv2
 import numpy as np
 import pandas as pd
 import seaborn as sns
-import pims
 
 #from sklearn import hmm
 from sklearn import mixture
@@ -73,7 +72,7 @@ def classify3(features):
 
 def classify4(features):
 	parameters = {
-	    'n_components' : np.arange(1, 3)
+	    'n_components' : np.arange(1, 8)
 	}
 	clf = GridSearchCV(GaussianMixture(covariance_type='full', random_state=0), parameters, cv=5, n_jobs=-1)
 	clf.fit(features)
@@ -172,14 +171,16 @@ if __name__ == "__main__":
 		print("Now playing cluster %d!" % i)
 
 		#cap = cv2.VideoCapture('Datasets/UCSDPed1/combined/train.avi')
-		cap = cv2.VideoCapture('Datasets/Pedestrian/train.avi')
+		#cap = cv2.VideoCapture('Datasets/Pedestrian/train.avi')
+		cap = cv2.VideoCapture('Datasets/Crossroads1/train.avi')
 		#cap = cv2.VideoCapture('z3.avi')
 		ok, frame = cap.read()
 		aspect = float(frame.shape[1]) / frame.shape[0]
 		cap.release()
 		#cap = cv2.VideoCapture('Datasets/UCSDPed1/combined/train.avi')
 		#cap = cv2.VideoCapture('z3.avi')
-		cap = cv2.VideoCapture('Datasets/Pedestrian/train.avi')
+		#cap = cv2.VideoCapture('Datasets/Pedestrian/train.avi')
+		cap = cv2.VideoCapture('Datasets/Crossroads1/train.avi')
 
 		msk = np.zeros([240, int(240 * aspect), 3], dtype=np.uint8)
 
