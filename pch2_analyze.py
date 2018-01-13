@@ -48,7 +48,7 @@ def classify3(features):
 	newdata = features
 	#newdata = scipy.ndimage.filters.gaussian_filter(features, (1.5, 1.5))
 	#newdata = scipy.ndimage.filters.gaussian_filter(features, 3)
-	n_components = np.arange(1, 50)
+	n_components = np.arange(1, 15)
 	BIC = np.zeros(n_components.shape)
 	lowest_bic = np.infty
 	best_gmm = None
