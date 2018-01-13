@@ -48,7 +48,7 @@ def classify3(features):
 	newdata = features
 	#newdata = scipy.ndimage.filters.gaussian_filter(features, (1.5, 1.5))
 	#newdata = scipy.ndimage.filters.gaussian_filter(features, 3)
-	n_components = np.arange(1, 15)
+	n_components = np.arange(1, 50)
 	BIC = np.zeros(n_components.shape)
 	lowest_bic = np.infty
 	best_gmm = None
@@ -61,6 +61,8 @@ def classify3(features):
 		if BIC[i] < lowest_bic:
 			lowest_bic = BIC[i]
 			best_gmm = gmm
+		else:
+			break
 
 	best_gmm = GaussianMixture(n_components=best_gmm.n_components, covariance_type='full', random_state=0)
 	best_gmm.fit(features)
@@ -115,7 +117,7 @@ if __name__ == "__main__":
 
 	#bgmm = classify(df2)
 	#bgmm = classify2(df2)
-	bgmm = classify4(df2)
+	bgmm = classify3(df2)
 
 	labels = bgmm.predict(df2)
 
