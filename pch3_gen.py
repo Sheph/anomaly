@@ -135,10 +135,10 @@ def process(cap, preds):
 if __name__ == "__main__":
 	#cap = cv2.VideoCapture('Datasets/UCSDPed1/combined/test.avi')
 	#process(cap, json.load(open('Datasets/UCSDPed1/combined/test_boxes.json')))
-	cap = cv2.VideoCapture('Datasets/Pedestrian/test.avi')
-	process(cap, json.load(open('ped_test_boxes.json')))
-	#cap = cv2.VideoCapture('Datasets/Crossroads1/train.avi')
-	#process(cap, json.load(open('cross1_train_boxes.json')))
+	#cap = cv2.VideoCapture('Datasets/Pedestrian/test.avi')
+	#process(cap, json.load(open('ped_test_boxes.json')))
+	cap = cv2.VideoCapture('Datasets/Crossroads1/test.avi')
+	process(cap, json.load(open('cross1_test_boxes.json')))
 	#cap = cv2.VideoCapture('z3.avi')
 	#process(cap, json.load(open('z3_boxes.json')))
 
