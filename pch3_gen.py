@@ -105,8 +105,8 @@ def process(cap, preds):
 				w = int(b[5] * frame_w)
 				h = int(b[6] * frame_h)
 
-				#if cls != "person":
-				#	continue
+				if cls != "person":
+					continue
 
 				if (w >= obj_min_w) & (h >= obj_min_h) & (w <= obj_max_w) & (h <= obj_max_h):
 					cv2.rectangle(frame, (x, y), (x + w, y + h), (255, 255, 255), 2)
@@ -137,13 +137,13 @@ if __name__ == "__main__":
 	#process(cap, json.load(open('Datasets/UCSDPed1/combined/test_boxes.json')))
 	#cap = cv2.VideoCapture('Datasets/Pedestrian/test.avi')
 	#process(cap, json.load(open('ped_test_boxes.json')))
-	cap = cv2.VideoCapture('Datasets/Crossroads1/test.avi')
-	process(cap, json.load(open('cross1_test_boxes.json')))
+	#cap = cv2.VideoCapture('Datasets/Crossroads1/test.avi')
+	#process(cap, json.load(open('cross1_test_boxes.json')))
 	#cap = cv2.VideoCapture('z3.avi')
 	#process(cap, json.load(open('z3_boxes.json')))
 
-	#cap = cv2.VideoCapture('reception_long_train.avi')
-	#process(cap, json.load(open('reception_long_train_boxes.json')))
+	cap = cv2.VideoCapture('reception_short_test.avi')
+	process(cap, json.load(open('reception_short_test_boxes.json')))
 
 	cap.release()
 	cv2.destroyAllWindows()
