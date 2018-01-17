@@ -130,7 +130,7 @@ def process(cap, preds):
 
 	print("Done!")
 	df = pd.DataFrame(features, columns = ["time", "frame", "x", "y", "w", "h", "Rf", "mx", "my"])
-	df.to_csv("data.csv", encoding='utf-8')
+	df.to_csv("data_long.csv", encoding='utf-8')
 
 if __name__ == "__main__":
 	#cap = cv2.VideoCapture('Datasets/UCSDPed1/combined/test.avi')
@@ -142,8 +142,8 @@ if __name__ == "__main__":
 	#cap = cv2.VideoCapture('z3.avi')
 	#process(cap, json.load(open('z3_boxes.json')))
 
-	cap = cv2.VideoCapture('reception_short_train.avi')
-	process(cap, json.load(open('reception_short_train_boxes.json')))
+	cap = cv2.VideoCapture('reception_long_train.avi')
+	process(cap, json.load(open('reception_long_train_boxes.json')))
 
 	cap.release()
 	cv2.destroyAllWindows()

@@ -48,7 +48,7 @@ def classify3(features):
 	newdata = features
 	#newdata = scipy.ndimage.filters.gaussian_filter(features, (1.5, 1.5))
 	#newdata = scipy.ndimage.filters.gaussian_filter(features, 3)
-	n_components = np.arange(1, 50)
+	n_components = np.arange(1, 20)
 	BIC = np.zeros(n_components.shape)
 	lowest_bic = np.infty
 	best_gmm = None
@@ -62,7 +62,8 @@ def classify3(features):
 			lowest_bic = BIC[i]
 			best_gmm = gmm
 		else:
-			break
+			pass
+			#break
 
 	best_gmm = GaussianMixture(n_components=best_gmm.n_components, covariance_type='full', random_state=0)
 	best_gmm.fit(features)
@@ -74,7 +75,7 @@ def classify3(features):
 
 def classify4(features):
 	parameters = {
-	    'n_components' : np.arange(1, 50)
+	    'n_components' : np.arange(1, 20)
 	}
 	clf = GridSearchCV(GaussianMixture(covariance_type='full', random_state=0), parameters, cv=5, n_jobs=-1)
 	clf.fit(features)
@@ -82,12 +83,12 @@ def classify4(features):
 	return clf.best_estimator_
 
 if __name__ == "__main__":
-	df = pd.read_csv("data.csv")
+	df = pd.read_csv("data_long.csv")
 	df.drop([df.columns[0], df.columns[1]], inplace=True, axis=1)
 	#df.drop(["Rf"], inplace=True, axis=1)
 
-	#scaler = StandardScaler()
-	scaler = MinMaxScaler()
+	scaler = StandardScaler()
+	#scaler = MinMaxScaler()
 
 
 
