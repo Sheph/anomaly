@@ -175,8 +175,8 @@ if __name__ == "__main__":
 	#cap = cv2.VideoCapture('z3.avi')
 	#process(cap, json.load(open('z3_boxes.json')))
 
-	#cap = cv2.VideoCapture('reception_long_train.avi')
-	#process(cap, json.load(open('reception_long_train_boxes.json')))
+	#cap = cv2.VideoCapture('reception_long_test.avi')
+	#process(cap, json.load(open('reception_long_test_boxes.json')))
 
 	cap.release()
 	cv2.destroyAllWindows()
