@@ -16,6 +16,7 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from sklearn.preprocessing import StandardScaler
 from sklearn.preprocessing import MinMaxScaler
+from sklearn.preprocessing import RobustScaler
 from matplotlib.colors import LogNorm
 from sklearn.mixture import GaussianMixture
 from sklearn.model_selection import GridSearchCV
@@ -48,7 +49,7 @@ def classify3(features):
 	newdata = features
 	#newdata = scipy.ndimage.filters.gaussian_filter(features, (1.5, 1.5))
 	#newdata = scipy.ndimage.filters.gaussian_filter(features, 3)
-	n_components = np.arange(1, 20)
+	n_components = np.arange(1, 30)
 	BIC = np.zeros(n_components.shape)
 	lowest_bic = np.infty
 	best_gmm = None
@@ -62,8 +63,8 @@ def classify3(features):
 			lowest_bic = BIC[i]
 			best_gmm = gmm
 		else:
-			pass
-			#break
+			#pass
+			break
 
 	best_gmm = GaussianMixture(n_components=best_gmm.n_components, covariance_type='full', random_state=0)
 	best_gmm.fit(features)
@@ -75,7 +76,7 @@ def classify3(features):
 
 def classify4(features):
 	parameters = {
-	    'n_components' : np.arange(1, 20)
+	    'n_components' : np.arange(1, 30)
 	}
 	clf = GridSearchCV(GaussianMixture(covariance_type='full', random_state=0), parameters, cv=5, n_jobs=-1)
 	clf.fit(features)
@@ -83,12 +84,13 @@ def classify4(features):
 	return clf.best_estimator_
 
 if __name__ == "__main__":
-	df = pd.read_csv("data_long.csv")
+	df = pd.read_csv("data_ped_test.csv")
 	df.drop([df.columns[0], df.columns[1]], inplace=True, axis=1)
 	#df.drop(["Rf"], inplace=True, axis=1)
 
-	scaler = StandardScaler()
-	#scaler = MinMaxScaler()
+	#scaler = StandardScaler()
+	scaler = MinMaxScaler()
+	#scaler = RobustScaler()
 
 
 
@@ -99,6 +101,7 @@ if __name__ == "__main__":
 	df2 = df.drop(df.columns[0], axis=1)
 
 	df2 = pd.DataFrame(scaler.fit_transform(df2), columns=df2.columns)
+	#df2 = pd.DataFrame(df2, columns=df2.columns)
 
 	print(df2.describe())
 
@@ -174,15 +177,15 @@ if __name__ == "__main__":
 		print("Now playing cluster %d!" % i)
 
 		#cap = cv2.VideoCapture('Datasets/UCSDPed1/combined/train.avi')
-		#cap = cv2.VideoCapture('Datasets/Pedestrian/train.avi')
+		cap = cv2.VideoCapture('Datasets/Pedestrian/test.avi')
 		#cap = cv2.VideoCapture('Datasets/Crossroads1/train.avi')
-		cap = cv2.VideoCapture('z3.avi')
+		#cap = cv2.VideoCapture('z3.avi')
 		ok, frame = cap.read()
 		aspect = float(frame.shape[1]) / frame.shape[0]
 		cap.release()
 		#cap = cv2.VideoCapture('Datasets/UCSDPed1/combined/train.avi')
-		cap = cv2.VideoCapture('z3.avi')
-		#cap = cv2.VideoCapture('Datasets/Pedestrian/train.avi')
+		#cap = cv2.VideoCapture('z3.avi')
+		cap = cv2.VideoCapture('Datasets/Pedestrian/test.avi')
 		#cap = cv2.VideoCapture('Datasets/Crossroads1/train.avi')
 
 		msk = np.zeros([240, int(240 * aspect), 3], dtype=np.uint8)
@@ -211,7 +214,7 @@ if __name__ == "__main__":
 				#frame = cap[int(frm)]
 				frame = cv2.resize(frame, (int(240 * aspect), 240), interpolation = cv2.INTER_AREA)
 
-				cv2.circle(frame, (int(scaler.inverse_transform([bgmm.means_[i,:]])[0][0]), int(scaler.inverse_transform([bgmm.means_[i,:]])[0][1])), 10, (255,255,255),5)
+				#cv2.circle(frame, (int(scaler.inverse_transform([bgmm.means_[i,:]])[0][0]), int(scaler.inverse_transform([bgmm.means_[i,:]])[0][1])), 10, (255,255,255),5)
 
 				frame = cv2.addWeighted(frame, 1.0, msk, 0.5, 0)
 

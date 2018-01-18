@@ -5,6 +5,11 @@ import numpy as np
 import pandas as pd
 import json
 
+def cart2pol(x, y):
+	rho = np.sqrt(x**2 + y**2)
+	phi = np.arctan2(y, x)
+	return(rho, phi)
+
 def process(cap, preds):
 	scale_height = 240
 	target_fps = 10
@@ -60,10 +65,22 @@ def process(cap, preds):
 		for tr in trackers:
 			tr_obj = tr[0]
 			bbox = tr[1]
+			#c_speed_x = tr[2]
+			#c_speed_y = tr[3]
+			#c_cnt = tr[4]
 			ok2, ubbox = tr_obj.update(orig_frame)
 			ubbox = (int(ubbox[0]), int(ubbox[1]), int(ubbox[2]), int(ubbox[3]))
 			if ok2:
 				tr[2] = ubbox
+				cx = bbox[0] + bbox[2] / 2.0
+				cy = bbox[1] + bbox[3] / 2.0
+
+				mx = ubbox[0] + ubbox[2] / 2.0
+				my = ubbox[1] + ubbox[3] / 2.0
+
+				tr[3] += mx - cx
+				tr[4] += my - cy
+				tr[5] += 1
 			else:
 				pass
 				#tr[2] = bbox
@@ -81,12 +98,28 @@ def process(cap, preds):
 			cy = bbox[1] + bbox[3] / 2.0
 			w = float(bbox[2])
 			h = float(bbox[3])
-			Rf = 0.0
 
 			mx = ubbox[0] + ubbox[2] / 2.0
 			my = ubbox[1] + ubbox[3] / 2.0
 
-			features.append([cap.get(cv2.CAP_PROP_POS_FRAMES) / fps, cap.get(cv2.CAP_PROP_POS_FRAMES), cx, cy, w, h, Rf, (mx - cx), (my - cy)])
+			Rf = 0#np.sqrt((mx - cx) ** 2 + (my - cy) ** 2)
+			sx = mx - cx
+			sy = my - cy
+			if tr[5] > 0:
+				pass
+				#sx = tr[3] / tr[5]
+				#sy = tr[4] / tr[5]
+			else:
+				pass
+				#sx = 0
+				#sy = 0
+
+			#sx, sy = cart2pol(sx, sy)
+
+			#w = w * h
+			#h = 0
+
+			features.append([cap.get(cv2.CAP_PROP_POS_FRAMES) / fps, cap.get(cv2.CAP_PROP_POS_FRAMES), cx, cy, w, h, Rf, sx, sy])
 
 			tr[1] = tr[2]
 
@@ -105,8 +138,8 @@ def process(cap, preds):
 				w = int(b[5] * frame_w)
 				h = int(b[6] * frame_h)
 
-				if cls != "person":
-					continue
+				#if cls != "person":
+				#	continue
 
 				if (w >= obj_min_w) & (h >= obj_min_h) & (w <= obj_max_w) & (h <= obj_max_h):
 					cv2.rectangle(frame, (x, y), (x + w, y + h), (255, 255, 255), 2)
@@ -116,7 +149,7 @@ def process(cap, preds):
 					#tr = cv2.Tracker_create('KCF')
 					tr.init(orig_frame, (x, y, w, h))
 					tr.update(orig_frame)
-					trackers.append([tr, (x, y, w, h), (x, y, w, h)])
+					trackers.append([tr, (x, y, w, h), (x, y, w, h), 0, 0, 0])
 
 			pred_i += 1
 			if pred_i >= len(preds):
@@ -130,20 +163,20 @@ def process(cap, preds):
 
 	print("Done!")
 	df = pd.DataFrame(features, columns = ["time", "frame", "x", "y", "w", "h", "Rf", "mx", "my"])
-	df.to_csv("data_long.csv", encoding='utf-8')
+	df.to_csv("data_ped_train.csv", encoding='utf-8')
 
 if __name__ == "__main__":
 	#cap = cv2.VideoCapture('Datasets/UCSDPed1/combined/test.avi')
 	#process(cap, json.load(open('Datasets/UCSDPed1/combined/test_boxes.json')))
-	#cap = cv2.VideoCapture('Datasets/Pedestrian/test.avi')
-	#process(cap, json.load(open('ped_test_boxes.json')))
+	cap = cv2.VideoCapture('Datasets/Pedestrian/train.avi')
+	process(cap, json.load(open('ped_train_boxes.json')))
 	#cap = cv2.VideoCapture('Datasets/Crossroads1/test.avi')
 	#process(cap, json.load(open('cross1_test_boxes.json')))
 	#cap = cv2.VideoCapture('z3.avi')
 	#process(cap, json.load(open('z3_boxes.json')))
 
-	cap = cv2.VideoCapture('reception_long_train.avi')
-	process(cap, json.load(open('reception_long_train_boxes.json')))
+	#cap = cv2.VideoCapture('reception_long_train.avi')
+	#process(cap, json.load(open('reception_long_train_boxes.json')))
 
 	cap.release()
 	cv2.destroyAllWindows()
