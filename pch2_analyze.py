@@ -76,16 +76,16 @@ def classify3(features):
 
 def classify4(features):
 	parameters = {
-	    'n_components' : np.arange(1, 30)
+	    'n_components' : np.arange(1, 17)
 	}
-	clf = GridSearchCV(GaussianMixture(covariance_type='full', random_state=0), parameters, cv=5, n_jobs=-1)
+	clf = GridSearchCV(GaussianMixture(covariance_type='full'), parameters, cv=5, n_jobs=-1)
 	clf.fit(features)
 	print("n_components",clf.best_estimator_.n_components)
 	return clf.best_estimator_
 
 if __name__ == "__main__":
 	df = pd.read_csv("data_ped_test.csv")
-	df.drop([df.columns[0], df.columns[1]], inplace=True, axis=1)
+	df.drop([df.columns[0], df.columns[1], "Rf"], inplace=True, axis=1)
 	#df.drop(["Rf"], inplace=True, axis=1)
 
 	#scaler = StandardScaler()
@@ -121,7 +121,7 @@ if __name__ == "__main__":
 
 	#bgmm = classify(df2)
 	#bgmm = classify2(df2)
-	bgmm = classify3(df2)
+	bgmm = classify4(df2)
 
 	labels = bgmm.predict(df2)
 

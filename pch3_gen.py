@@ -82,8 +82,9 @@ def process(cap, preds):
 				tr[4] += my - cy
 				tr[5] += 1
 			else:
-				pass
-				#tr[2] = bbox
+				if tr[5] > 0:
+					tr[2] = None
+				tr[5] = 0
 
 		for tr in trackers:
 			tr_obj = tr[0]
@@ -102,17 +103,9 @@ def process(cap, preds):
 			mx = ubbox[0] + ubbox[2] / 2.0
 			my = ubbox[1] + ubbox[3] / 2.0
 
-			Rf = 0#np.sqrt((mx - cx) ** 2 + (my - cy) ** 2)
+			Rf = tr[6]
 			sx = mx - cx
 			sy = my - cy
-			if tr[5] > 0:
-				pass
-				#sx = tr[3] / tr[5]
-				#sy = tr[4] / tr[5]
-			else:
-				pass
-				#sx = 0
-				#sy = 0
 
 			#sx, sy = cart2pol(sx, sy)
 
@@ -122,6 +115,9 @@ def process(cap, preds):
 			features.append([cap.get(cv2.CAP_PROP_POS_FRAMES) / fps, cap.get(cv2.CAP_PROP_POS_FRAMES), cx, cy, w, h, Rf, sx, sy])
 
 			tr[1] = tr[2]
+
+			if tr[5] == 0:
+				tr[2] = None
 
 		if trackers:
 			cv2.imshow('frame', frame)
@@ -138,8 +134,8 @@ def process(cap, preds):
 				w = int(b[5] * frame_w)
 				h = int(b[6] * frame_h)
 
-				if cls != "person":
-					continue
+				#if cls != "person":
+				#	continue
 
 				if (w >= obj_min_w) & (h >= obj_min_h) & (w <= obj_max_w) & (h <= obj_max_h):
 					cv2.rectangle(frame, (x, y), (x + w, y + h), (255, 255, 255), 2)
@@ -149,7 +145,7 @@ def process(cap, preds):
 					#tr = cv2.Tracker_create('KCF')
 					tr.init(orig_frame, (x, y, w, h))
 					tr.update(orig_frame)
-					trackers.append([tr, (x, y, w, h), (x, y, w, h), 0, 0, 0])
+					trackers.append([tr, (x, y, w, h), (x, y, w, h), 0, 0, 0, prob])
 
 			pred_i += 1
 			if pred_i >= len(preds):
@@ -163,23 +159,23 @@ def process(cap, preds):
 
 	print("Done!")
 	df = pd.DataFrame(features, columns = ["time", "frame", "x", "y", "w", "h", "Rf", "mx", "my"])
-	df.to_csv("data_kitchen2.csv", encoding='utf-8')
+	df.to_csv("data_ped_train.csv", encoding='utf-8')
 
 if __name__ == "__main__":
 	#cap = cv2.VideoCapture('Datasets/UCSDPed1/combined/test.avi')
 	#process(cap, json.load(open('Datasets/UCSDPed1/combined/test_boxes.json')))
-	#cap = cv2.VideoCapture('Datasets/Pedestrian/train.avi')
-	#process(cap, json.load(open('ped_train_boxes.json')))
+	cap = cv2.VideoCapture('Datasets/Pedestrian/train.avi')
+	process(cap, json.load(open('ped_train_boxes.json')))
 	#cap = cv2.VideoCapture('Datasets/Crossroads1/test.avi')
 	#process(cap, json.load(open('cross1_test_boxes.json')))
 	#cap = cv2.VideoCapture('z3.avi')
 	#process(cap, json.load(open('z3_boxes.json')))
 
-	#cap = cv2.VideoCapture('reception_long_test.avi')
-	#process(cap, json.load(open('reception_long_test_boxes.json')))
+	#cap = cv2.VideoCapture('reception_short_train.avi')
+	#process(cap, json.load(open('reception_short_train_boxes.json')))
 
-	cap = cv2.VideoCapture('kitchen2.avi')
-	process(cap, json.load(open('kitchen2.json')))
+	#cap = cv2.VideoCapture('kitchen1.avi')
+	#process(cap, json.load(open('kitchen1.json')))
 
 	cap.release()
 	cv2.destroyAllWindows()
