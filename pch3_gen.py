@@ -134,8 +134,8 @@ def process(cap, preds):
 				w = int(b[5] * frame_w)
 				h = int(b[6] * frame_h)
 
-				#if cls != "person":
-				#	continue
+				if cls != "person":
+					continue
 
 				if (w >= obj_min_w) & (h >= obj_min_h) & (w <= obj_max_w) & (h <= obj_max_h):
 					cv2.rectangle(frame, (x, y), (x + w, y + h), (255, 255, 255), 2)
@@ -159,13 +159,13 @@ def process(cap, preds):
 
 	print("Done!")
 	df = pd.DataFrame(features, columns = ["time", "frame", "x", "y", "w", "h", "Rf", "mx", "my"])
-	df.to_csv("data_ped_train.csv", encoding='utf-8')
+	df.to_csv("data_kitchen3.csv", encoding='utf-8')
 
 if __name__ == "__main__":
 	#cap = cv2.VideoCapture('Datasets/UCSDPed1/combined/test.avi')
 	#process(cap, json.load(open('Datasets/UCSDPed1/combined/test_boxes.json')))
-	cap = cv2.VideoCapture('Datasets/Pedestrian/train.avi')
-	process(cap, json.load(open('ped_train_boxes.json')))
+	#cap = cv2.VideoCapture('Datasets/Pedestrian/train.avi')
+	#process(cap, json.load(open('ped_train_boxes.json')))
 	#cap = cv2.VideoCapture('Datasets/Crossroads1/test.avi')
 	#process(cap, json.load(open('cross1_test_boxes.json')))
 	#cap = cv2.VideoCapture('z3.avi')
@@ -174,8 +174,8 @@ if __name__ == "__main__":
 	#cap = cv2.VideoCapture('reception_short_train.avi')
 	#process(cap, json.load(open('reception_short_train_boxes.json')))
 
-	#cap = cv2.VideoCapture('kitchen1.avi')
-	#process(cap, json.load(open('kitchen1.json')))
+	cap = cv2.VideoCapture('kitchen3.avi')
+	process(cap, json.load(open('kitchen3.json')))
 
 	cap.release()
 	cv2.destroyAllWindows()
