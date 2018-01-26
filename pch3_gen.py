@@ -10,6 +10,39 @@ def cart2pol(x, y):
 	phi = np.arctan2(y, x)
 	return(rho, phi)
 
+def draw_flow(img, flow, step=16):
+	h, w = img.shape[:2]
+	y, x = np.mgrid[step/2:h:step, step/2:w:step].reshape(2,-1).astype(int)
+	fx, fy = flow[y,x].T
+	lines = np.vstack([x, y, x+fx, y+fy]).T.reshape(-1, 2, 2)
+	lines = np.int32(lines + 0.5)
+	cv2.polylines(img, lines, 0, (0, 255, 0))
+	for (x1, y1), (_x2, _y2) in lines:
+		cv2.circle(img, (x1, y1), 1, (0, 255, 0), -1)
+
+def avg_flow(flow, bbox):
+	frame_h, frame_w = flow.shape[:2]
+
+	x1 = bbox[0]
+	y1 = bbox[1]
+	x2 = bbox[0] + bbox[2]
+	y2 = bbox[1] + bbox[3]
+	if x1 < 0:
+		x1 = 0
+	if y1 < 0:
+		y1 = 0
+	if y1 >= frame_h:
+		y2 = frame_h - 1
+	if x2 >= frame_w:
+		x2 = frame_w - 1
+
+	if ((x2 - x1) <= 0) or ((y2 - y1) <= 0):
+		return (0, 0)
+
+	flow_x, flow_y = flow[y1:y2,x1:x2].T
+	area = (x2 - x1) * (y2 - y1)
+	return (np.sum(flow_x) / area, np.sum(flow_y) / area)
+
 def process(cap, preds):
 	scale_height = 240
 	target_fps = 10
@@ -42,6 +75,8 @@ def process(cap, preds):
 
 	features = []
 
+	prevgray = None
+
 	i = 0
 	j = 0
 	while ok:
@@ -60,7 +95,15 @@ def process(cap, preds):
 
 		orig_frame = frame.copy()
 
+		gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+		if prevgray is not None:
+			flow = cv2.calcOpticalFlowFarneback(prevgray, gray, None, 0.5, 3, 15, 3, 5, 1.2, 0)
+			#draw_flow(frame, flow, 8)
+		prevgray = gray
+
 		frm = cap.get(cv2.CAP_PROP_POS_FRAMES)
+
+		shw = False
 
 		for tr in trackers:
 			tr_obj = tr[0]
@@ -93,7 +136,12 @@ def process(cap, preds):
 			if ubbox is None:
 				continue
 			cv2.rectangle(frame, (bbox[0], bbox[1]), (bbox[0] + bbox[2], bbox[1] + bbox[3]), (0, 255, 0), 2)
-			cv2.rectangle(frame, (ubbox[0], ubbox[1]), (ubbox[0] + ubbox[2], ubbox[1] + ubbox[3]), (0, 0, 255), 2)
+			#cv2.rectangle(frame, (ubbox[0], ubbox[1]), (ubbox[0] + ubbox[2], ubbox[1] + ubbox[3]), (0, 0, 255), 2)
+
+			af = avg_flow(flow, bbox)
+			fbbox = (int(bbox[0] + af[0] * 10), int(bbox[1] + af[1] * 10), bbox[2], bbox[3])
+
+			cv2.rectangle(frame, (fbbox[0], fbbox[1]), (fbbox[0] + fbbox[2], fbbox[1] + fbbox[3]), (255, 0, 0), 2)
 
 			cx = bbox[0] + bbox[2] / 2.0
 			cy = bbox[1] + bbox[3] / 2.0
@@ -106,6 +154,9 @@ def process(cap, preds):
 			Rf = tr[6]
 			sx = mx - cx
 			sy = my - cy
+
+			sx = af[0]
+			sy = af[1]
 
 			#sx, sy = cart2pol(sx, sy)
 
@@ -121,6 +172,7 @@ def process(cap, preds):
 
 		if trackers:
 			cv2.imshow('frame', frame)
+			shw = True
 
 		if frm >= cur_pred[0]:
 			boxes = cur_pred[1]
@@ -151,31 +203,32 @@ def process(cap, preds):
 			if pred_i >= len(preds):
 				break
 
-		k = cv2.waitKey(1) & 0xff
-		if k == 32:
-			k = cv2.waitKey() & 0xff
-		if k == 27:
-			break
+		if shw:
+			k = cv2.waitKey(1) & 0xff
+			if k == 32:
+				k = cv2.waitKey() & 0xff
+			if k == 27:
+				break
 
 	print("Done!")
 	df = pd.DataFrame(features, columns = ["time", "frame", "x", "y", "w", "h", "Rf", "mx", "my"])
-	df.to_csv("data_kitchen3.csv", encoding='utf-8')
+	df.to_csv("data_reception_test_weirdo_opt.csv", encoding='utf-8')
 
 if __name__ == "__main__":
 	#cap = cv2.VideoCapture('Datasets/UCSDPed1/combined/test.avi')
 	#process(cap, json.load(open('Datasets/UCSDPed1/combined/test_boxes.json')))
-	#cap = cv2.VideoCapture('Datasets/Pedestrian/train.avi')
-	#process(cap, json.load(open('ped_train_boxes.json')))
+	#cap = cv2.VideoCapture('Datasets/Pedestrian/test.avi')
+	#process(cap, json.load(open('ped_test_boxes.json')))
 	#cap = cv2.VideoCapture('Datasets/Crossroads1/test.avi')
 	#process(cap, json.load(open('cross1_test_boxes.json')))
 	#cap = cv2.VideoCapture('z3.avi')
 	#process(cap, json.load(open('z3_boxes.json')))
 
-	#cap = cv2.VideoCapture('reception_short_train.avi')
-	#process(cap, json.load(open('reception_short_train_boxes.json')))
+	cap = cv2.VideoCapture('reception_test_weirdo.avi')
+	process(cap, json.load(open('reception_test_weirdo.json')))
 
-	cap = cv2.VideoCapture('kitchen3.avi')
-	process(cap, json.load(open('kitchen3.json')))
+	#cap = cv2.VideoCapture('kitchen2.avi')
+	#process(cap, json.load(open('kitchen2.json')))
 
 	cap.release()
 	cv2.destroyAllWindows()

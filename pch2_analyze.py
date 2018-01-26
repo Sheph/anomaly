@@ -20,6 +20,7 @@ from sklearn.preprocessing import RobustScaler
 from matplotlib.colors import LogNorm
 from sklearn.mixture import GaussianMixture
 from sklearn.model_selection import GridSearchCV
+import hdbscan
 
 def classify(features):
 	lowest_bic = np.infty
@@ -55,9 +56,10 @@ def classify3(features):
 	best_gmm = None
 
 	for i, n in enumerate(n_components):
-		gmm = GaussianMixture(n_components=n, covariance_type='full', random_state=0)
+		gmm = GaussianMixture(n_components=n, covariance_type='full', random_state=123)
 		gmm.fit(newdata)
 		BIC[i] = gmm.bic(newdata)
+		#BIC[i] = -gmm.score(newdata)
 		print(BIC[i])
 		if BIC[i] < lowest_bic:
 			lowest_bic = BIC[i]
@@ -76,15 +78,21 @@ def classify3(features):
 
 def classify4(features):
 	parameters = {
-	    'n_components' : np.arange(1, 17)
+	    'n_components' : np.arange(12, 13)
 	}
 	clf = GridSearchCV(GaussianMixture(covariance_type='full'), parameters, cv=5, n_jobs=-1)
 	clf.fit(features)
 	print("n_components",clf.best_estimator_.n_components)
 	return clf.best_estimator_
 
+def classify5(features):
+	clf = hdbscan.HDBSCAN(min_cluster_size=500, gen_min_span_tree=True)
+	clf.fit(features)
+	print(len(clf.cluster_persistence_))
+	return clf
+
 if __name__ == "__main__":
-	df = pd.read_csv("data_ped_test.csv")
+	df = pd.read_csv("data_kitchen1.csv")
 	df.drop([df.columns[0], df.columns[1], "Rf"], inplace=True, axis=1)
 	#df.drop(["Rf"], inplace=True, axis=1)
 
@@ -119,13 +127,12 @@ if __name__ == "__main__":
 	sns.jointplot(x=X1[:,0], y=X1[:,1], kind="hex", color="k");
 	plt.show()
 
-	#bgmm = classify(df2)
-	#bgmm = classify2(df2)
 	bgmm = classify4(df2)
-
 	labels = bgmm.predict(df2)
-
 	print(bgmm.means_)
+
+	#bgmm = classify5(df2)
+	#labels = bgmm.labels_
 
 	#print(len(set(labels)))
 
@@ -177,15 +184,15 @@ if __name__ == "__main__":
 		print("Now playing cluster %d!" % i)
 
 		#cap = cv2.VideoCapture('Datasets/UCSDPed1/combined/train.avi')
-		cap = cv2.VideoCapture('Datasets/Pedestrian/test.avi')
+		#cap = cv2.VideoCapture('Datasets/Pedestrian/test.avi')
 		#cap = cv2.VideoCapture('Datasets/Crossroads1/train.avi')
-		#cap = cv2.VideoCapture('z3.avi')
+		cap = cv2.VideoCapture('kitchen3.avi')
 		ok, frame = cap.read()
 		aspect = float(frame.shape[1]) / frame.shape[0]
 		cap.release()
 		#cap = cv2.VideoCapture('Datasets/UCSDPed1/combined/train.avi')
-		#cap = cv2.VideoCapture('z3.avi')
-		cap = cv2.VideoCapture('Datasets/Pedestrian/test.avi')
+		cap = cv2.VideoCapture('kitchen3.avi')
+		#cap = cv2.VideoCapture('Datasets/Pedestrian/test.avi')
 		#cap = cv2.VideoCapture('Datasets/Crossroads1/train.avi')
 
 		msk = np.zeros([240, int(240 * aspect), 3], dtype=np.uint8)
