@@ -38,7 +38,7 @@ def calc_bcd(flow, cell_size, Ndirs, mag_thres, Tb):
 def process(cap):
 	scale_height = 240
 	target_fps = 10
-	cell_size = 16
+	cell_size = 14
 	Ndirs = 8
 	mag_thres = 0.05
 	Tb = 0.2
@@ -110,11 +110,15 @@ def process(cap):
 	features = { "frame_h" : frame_h, "frame_w" : frame_w, "T" : T, "Tsec" : Tsec, "features" : features }
 
 	print("Done!")
-	with open("robust_1.bin", "wb") as f:
+	with open("robust_2.bin", "wb") as f:
 		pickle.dump(features, f)
 
 if __name__ == "__main__":
-	cap = cv2.VideoCapture('reception_test_weirdo.avi')
+	#cap = cv2.VideoCapture('reception_test_weirdo.avi')
+	cap = cv2.VideoCapture('Datasets/Pedestrian/test.avi')
+
+
+
 	process(cap)
 
 	cap.release()
