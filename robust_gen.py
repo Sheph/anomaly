@@ -6,7 +6,7 @@ import pandas as pd
 import math, pickle
 
 def calc_bcd(flow, cell_size, Ndirs, mag_thres, Tb):
-	h, w = flow.shape[:2]
+	h, w = flow.shape[1:3]
 
 	Nx = int(w / cell_size)
 	Ny = int(h / cell_size)
@@ -15,13 +15,13 @@ def calc_bcd(flow, cell_size, Ndirs, mag_thres, Tb):
 
 	hofbins = np.arange(-math.pi, math.pi + 1e-6, 2 * math.pi / Ndirs)
 
-	fx, fy = flow[:,:,0], flow[:,:,1]
+	fx, fy = flow[:,:,:,0], flow[:,:,:,1]
 	orientation = np.arctan2(fy, fx)
 	magnitude = np.sqrt(fx*fx+fy*fy)
 	for i in range(Nx):
 		for j in range(Ny):
-			or1 = orientation[j * cell_size:(j + 1) * cell_size, i * cell_size:(i + 1) * cell_size]
-			mag1 = magnitude[j * cell_size:(j + 1) * cell_size, i * cell_size:(i + 1) * cell_size]
+			or1 = orientation[:, j * cell_size:(j + 1) * cell_size, i * cell_size:(i + 1) * cell_size]
+			mag1 = magnitude[:, j * cell_size:(j + 1) * cell_size, i * cell_size:(i + 1) * cell_size]
 
 			mag_gz = mag1 > mag_thres
 			pruned_or1 = or1[mag_gz]
@@ -42,6 +42,9 @@ def process(cap):
 	Ndirs = 8
 	mag_thres = 0.05
 	Tb = 0.2
+	Tsec = 5
+
+	T = Tsec * target_fps
 
 	#fps = cap.get(cv2.CAP_PROP_FPS)
 	fps = 25
@@ -64,11 +67,13 @@ def process(cap):
 	Nx = int(frame_w / cell_size)
 	Ny = int(frame_h / cell_size)
 
-	print(Nx, Ny)
+	print(Nx, Ny, T)
 
 	prevgray = None
 
 	features = []
+
+	flow_accum = []
 
 	i = 0
 	j = 0
@@ -87,10 +92,12 @@ def process(cap):
 		gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 		if prevgray is not None:
 			flow = cv2.calcOpticalFlowFarneback(prevgray, gray, None, 0.5, 3, 15, 3, 5, 1.2, 0)
-			bcd = calc_bcd(flow, cell_size, Ndirs, mag_thres, Tb)
-
-			features.append([cap.get(cv2.CAP_PROP_POS_FRAMES) / fps, cap.get(cv2.CAP_PROP_POS_FRAMES), bcd])
-
+			flow_accum.append(flow)
+			if len(flow_accum) >= T:
+				flow = np.array(flow_accum)
+				flow_accum = []
+				bcd = calc_bcd(flow, cell_size, Ndirs, mag_thres, Tb)
+				features.append([cap.get(cv2.CAP_PROP_POS_FRAMES) / fps, cap.get(cv2.CAP_PROP_POS_FRAMES), bcd])
 			cv2.imshow('frame', frame)
 		prevgray = gray
 
@@ -99,6 +106,8 @@ def process(cap):
 			k = cv2.waitKey() & 0xff
 		if k == 27:
 			break
+
+	features = { "frame_h" : frame_h, "frame_w" : frame_w, "T" : T, "Tsec" : Tsec, "features" : features }
 
 	print("Done!")
 	with open("robust_1.bin", "wb") as f:
